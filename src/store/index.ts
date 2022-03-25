@@ -23,7 +23,8 @@ const store = createStore({
   actions:{
     getData: async({commit,state})=> {
       let {code,message,data} = await getData();
-      if(!message) {
+      console.log(code,data)
+      if(code==0) {
          commit({
            type:"updateList",
            payload:data

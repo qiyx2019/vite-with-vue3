@@ -1,7 +1,7 @@
 <script  lang="ts">
 import { computed, defineComponent} from 'vue'
 import {useState,useGetters,useMutations} from "./utils/hooks"
-
+import main from "./demo"
 export default defineComponent({
   name:"main",
   setup(){
@@ -17,8 +17,6 @@ export default defineComponent({
 </script>
 
 <template>
-  <div>{{count}}</div>
-  <button type="button" @click='increment'>button</button>
   <router-view />
 </template>
 

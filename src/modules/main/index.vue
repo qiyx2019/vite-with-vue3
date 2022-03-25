@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-
+import Header from "../Header.vue"
 defineProps<{ msg: string }>()
 
 const count = ref(0)
@@ -10,6 +10,7 @@ const count = ref(0)
    
 
   <p>
+    <Header />
     Recommended IDE setup:
     <a href="https://code.visualstudio.com/" target="_blank">VSCode</a>
     +
