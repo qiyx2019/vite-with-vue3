@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import MyDemo from '../demo'
+
 defineProps<{ msg: string }>()
 
 const count = ref(0)
@@ -8,7 +8,6 @@ const count = ref(0)
 
 <template>
   <h1>{{ msg }}</h1>
-  <my-demo />
   <p>
     Recommended IDE setup:
     <a href="https://code.visualstudio.com/" target="_blank">VSCode</a>
