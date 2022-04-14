@@ -4,10 +4,22 @@ import { ref } from 'vue'
 defineProps<{ msg: string }>()
 
 const count = ref(0)
+data(){
+  return {
+    selected:[]
+  }
+}
+foundSelected(x){
+  if(this.selected.includes(x)) {
+    this.selected= this.selected.filter(i => i!=x);
+  }else{
+    this.selected.push(x);
+  }
+}
 </script>
 
 <template>
-  <h1>{{ msg }}</h1>
+  <h1 :class="selected.includes(item.index)?'red':'green'">{{ msg }}</h1>
   <p>
     Recommended IDE setup:
     <a href="https://code.visualstudio.com/" target="_blank">VSCode</a>

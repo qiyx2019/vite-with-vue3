@@ -3,7 +3,8 @@ const routes: Array<RouteRecordRaw> = [
   {
     path:"/",
     name:"home",
-    component:()=>import('@/modules/main/index.vue')
+    //@ts-ignore
+    component:()=>import('@/modules/main/index.tsx')
   }
 ] 
 const router = createRouter({
