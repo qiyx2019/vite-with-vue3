@@ -8,6 +8,8 @@ import {
   onUpdated,
   onUnmounted,
 } from 'vue'
+import { of, timer, interval, Subject, AsyncSubject, from } from 'rxjs'
+import { debounce, debounceTime, auditTime, map } from 'rxjs/operators'
 interface Ref<T> {
   value: T
 }
@@ -48,23 +50,58 @@ export default defineComponent((): (() => JSX.Element) => {
     console.log(e)
   }
   console.log(refs, 'refs')
-  let selected = reactive([]);
+  let selected = []
+  let output = ref('')
+  const example = of('example', 'women', 'man')
+  const examples = example.pipe(debounce(() => timer(1000)))
+  examples.subscribe((x) => console.log(x))
+  const interval$ = interval(1000)
+  const examples1 = interval$.pipe(debounce((v) => timer(v * 200)))
+  // .subscribe((x) => console.log(x))
+  let sub = new Subject<string>()
+  sub
+    .pipe(
+      map((x) => x),
+      debounceTime(1500)
+    )
+    .subscribe((x) => {
+      new Promise((resolve, reject) =>{
+        resolve(1)
+      }).then(()=>{
+        output.value = x;
+      }).catch((err) =>console.log(err,'err'))
+    })
+  let sub1 = new Subject<any>()
+
+  let output1 = sub1.pipe(map((x) => x)).subscribe((x) => x)
+  console.log(output1, 'output1')
 
   return () => (
     <>
-      <div>{refs.value}</div>
+      <div>
+        {output.value}--{refs.value}
+      </div>
+
       <div onClick={handleClick}>无参数</div>
       <App msg="app1" findData={findData} />
       <input
         onInput={({ target }: any): void => {
           console.log(target.value, 'e')
+          sub.next(target.value)
           refs.value = target.value
           state.value = { name: target.value }
         }}
       />
-      {[1,2,3,4,5].map(item => <div>
-        <div onClick={()=> selected.push(item)} style={{width:40,height:40,color:'red'}}>{item}</div>
-      </div>)}
+      {/* {[1, 2, 3, 4, 5].map((item) => (
+        <div>
+          <div
+            onClick={() => selected.push(item)}
+            style={{ width: 40, height: 40, color: 'red' }}
+          >
+            {item}
+          </div>
+        </div>
+      ))} */}
       <div onClick={() => handleClickInput('youcanshu')}>you参数</div>
     </>
   )
