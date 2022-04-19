@@ -9,7 +9,15 @@ import {
   onUnmounted,
 } from 'vue'
 import { of, timer, interval, Subject, AsyncSubject, from } from 'rxjs'
-import { debounce, debounceTime, auditTime, map } from 'rxjs/operators'
+import {
+  debounce,
+  debounceTime,
+  auditTime,
+  map,
+  scan,
+  last, //取最后一次值
+  reduce,
+} from 'rxjs/operators'
 interface Ref<T> {
   value: T
 }
@@ -58,6 +66,7 @@ export default defineComponent((): (() => JSX.Element) => {
   const interval$ = interval(1000)
   const examples1 = interval$.pipe(debounce((v) => timer(v * 200)))
   // .subscribe((x) => console.log(x))
+  //查询优化,rxjs debounceTime
   let sub = new Subject<string>()
   sub
     .pipe(
@@ -65,17 +74,33 @@ export default defineComponent((): (() => JSX.Element) => {
       debounceTime(1500)
     )
     .subscribe((x) => {
-      new Promise((resolve, reject) =>{
+      new Promise((resolve, reject) => {
         resolve(1)
-      }).then(()=>{
-        output.value = x;
-      }).catch((err) =>console.log(err,'err'))
+      })
+        .then(() => {
+          output.value = x
+        })
+        .catch((err) => console.log(err, 'err'))
     })
   let sub1 = new Subject<any>()
-
-  let output1 = sub1.pipe(map((x) => x)).subscribe((x) => x)
-  console.log(output1, 'output1')
-
+    //scan求和 vs reducer求和
+    // 区别: scan每次都会返回求和结果,reduce只有完成时返回求和结果,scan+last = reduce
+  sub1
+    .pipe(
+      reduce((x, y) =>Object.assign({},x,y), {}),
+    )
+    .subscribe((x) => console.log(x))
+    sub1.next({ name: 'Joe' })
+    sub1.next({ age: '22' })
+    sub1.next({ favoriteLanguage: 'JavaScript' });
+    sub1.complete()
+  const source = of(1, 2, 3)
+  source
+    .pipe(
+      scan((x, y) => x + y, 0),
+      last()
+    )
+    .subscribe((x) => console.log(x, 'scan'))
   return () => (
     <>
       <div>
