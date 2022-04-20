@@ -7,8 +7,17 @@ import {
   onMounted,
   onUpdated,
   onUnmounted,
+  getCurrentInstance
 } from 'vue'
-import { of, timer, interval, Subject, AsyncSubject, from } from 'rxjs'
+import {
+  of,
+  timer,
+  interval,
+  Subject,
+  AsyncSubject,
+  from,
+  Observable,
+} from 'rxjs'
 import {
   debounce,
   debounceTime,
@@ -17,13 +26,17 @@ import {
   scan,
   last, //取最后一次值
   reduce,
+  startWith,
+  endWith
 } from 'rxjs/operators'
 interface Ref<T> {
   value: T
 }
 
-export default defineComponent((): (() => JSX.Element) => {
+export default defineComponent((props): (() => JSX.Element) => {
+  const internalInstance = getCurrentInstance()
   onMounted(() => {
+   
     console.log('mounted!')
   })
   onUpdated(() => {
@@ -83,17 +96,15 @@ export default defineComponent((): (() => JSX.Element) => {
         .catch((err) => console.log(err, 'err'))
     })
   let sub1 = new Subject<any>()
-    //scan求和 vs reducer求和
-    // 区别: scan每次都会返回求和结果,reduce只有完成时返回求和结果,scan+last = reduce
+  //scan求和 vs reducer求和
+  // 区别: scan每次都会返回求和结果,reduce只有完成时返回求和结果,scan+last = reduce
   sub1
-    .pipe(
-      reduce((x, y) =>Object.assign({},x,y), {}),
-    )
+    .pipe(reduce((x, y) => Object.assign({}, x, y), {}))
     .subscribe((x) => console.log(x))
-    sub1.next({ name: 'Joe' })
-    sub1.next({ age: '22' })
-    sub1.next({ favoriteLanguage: 'JavaScript' });
-    sub1.complete()
+  sub1.next({ name: 'Joe' })
+  sub1.next({ age: '22' })
+  sub1.next({ favoriteLanguage: 'JavaScript' })
+  sub1.complete()
   const source = of(1, 2, 3)
   source
     .pipe(
@@ -101,12 +112,40 @@ export default defineComponent((): (() => JSX.Element) => {
       last()
     )
     .subscribe((x) => console.log(x, 'scan'))
+  const getObservable = () => {
+    let res: Array<Observable<any>> = []
+    sub1
+      .pipe(reduce((x, y) => Object.assign({}, x, y), {}))
+      .subscribe((x: any) => {
+        res = [x]
+      })
+    sub1.next({ name: 'Joe' })
+    sub1.next({ age: '22' })
+    sub1.next({ favoriteLanguage: 'JavaScript' })
+    sub1.complete()
+    if (res) {
+      return <div>{res.map((item) => item.name)}</div>
+    }
+    return null
+  }
+  let sub2 = new Subject<any>()
+  sub2
+    .pipe(
+      startWith({ name: 'qiyx' }),
+      map((x) => x),
+      endWith({ address: '999'}),
+      reduce((x,y)=>Object.assign({},x,y),{}),
+      
+    )
+    .subscribe((x) => console.log(x, 'sub2'))
+  sub2.next({ age: '25' })
+  sub2.complete()
+  console.log(internalInstance,'proxy')
   return () => (
     <>
       <div>
         {output.value}--{refs.value}
       </div>
-
       <div onClick={handleClick}>无参数</div>
       <App msg="app1" findData={findData} />
       <input
