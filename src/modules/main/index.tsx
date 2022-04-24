@@ -7,7 +7,7 @@ import {
   onMounted,
   onUpdated,
   onUnmounted,
-  getCurrentInstance
+  getCurrentInstance,
 } from 'vue'
 import {
   of,
@@ -17,6 +17,8 @@ import {
   AsyncSubject,
   from,
   Observable,
+  mergeMap,
+  forkJoin
 } from 'rxjs'
 import {
   debounce,
@@ -27,7 +29,9 @@ import {
   last, //取最后一次值
   reduce,
   startWith,
-  endWith
+  endWith,
+  take,
+  takeUntil
 } from 'rxjs/operators'
 interface Ref<T> {
   value: T
@@ -36,7 +40,6 @@ interface Ref<T> {
 export default defineComponent((props): (() => JSX.Element) => {
   const internalInstance = getCurrentInstance()
   onMounted(() => {
-   
     console.log('mounted!')
   })
   onUpdated(() => {
@@ -133,14 +136,40 @@ export default defineComponent((props): (() => JSX.Element) => {
     .pipe(
       startWith({ name: 'qiyx' }),
       map((x) => x),
-      endWith({ address: '999'}),
-      reduce((x,y)=>Object.assign({},x,y),{}),
-      
+      endWith({ address: '999' }),
+      reduce((x, y) => Object.assign({}, x, y), {})
     )
     .subscribe((x) => console.log(x, 'sub2'))
   sub2.next({ age: '25' })
   sub2.complete()
-  console.log(internalInstance,'proxy')
+  console.log(internalInstance, 'proxy')
+  //forkJoin 
+  let sub3 = new Subject<any>();
+  sub3.pipe(
+    mergeMap(q => forkJoin(
+      ...q.map(
+        (val) => new Promise((resolve) => setTimeout(()=>resolve(val),5000 ))
+      )
+    ))
+  ).subscribe(x => console.log(x,'x')) 
+  sub3.next([{name:1},{name:12},{name:13},{name:14},{name:15}]);
+  let sub4 = new Subject<any>() //take
+  sub4.pipe(
+    take(2)
+  ).subscribe((x)=> console.log(x,'sub4'))
+  sub4.next(1)
+  sub4.next(21)
+  sub4.next(13)
+  sub4.next(14)
+  let sub5 = new Subject<any>() //takeUntil
+  sub5.pipe(takeUntil(
+    timer(5000)
+  )).subscribe((x)=> console.log(x,'sub5'))
+  sub5.next(1)
+  sub5.next(2)
+  sub5.next(3)
+  sub5.next(5)
+
   return () => (
     <>
       <div>
