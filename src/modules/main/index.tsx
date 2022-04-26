@@ -18,7 +18,9 @@ import {
   from,
   Observable,
   mergeMap,
-  forkJoin
+  forkJoin,
+  switchMap,
+  concatMap,
 } from 'rxjs'
 import {
   debounce,
@@ -31,7 +33,7 @@ import {
   startWith,
   endWith,
   take,
-  takeUntil
+  takeUntil,
 } from 'rxjs/operators'
 interface Ref<T> {
   value: T
@@ -169,7 +171,21 @@ export default defineComponent((props): (() => JSX.Element) => {
   sub5.next(2)
   sub5.next(3)
   sub5.next(5)
-
+  //mergeMap
+  let sub6 = new Subject<any>()
+  sub6.pipe(
+    mergeMap(x => of(`${x} world`))
+  ).subscribe(x => console.log(x,'sub6'))
+  sub6.next('hello')
+  let sub7 = new Subject<any>()
+  const promise = (x:any) => new Promise((resolve)=> resolve(`${x} from promise`))
+  sub7.pipe(mergeMap(x => promise(x))).subscribe(x => console.log(x,'sub7'))
+  sub7.next('hello')
+  let sub8 = new Subject<any>()
+  sub8.pipe(mergeMap(x => promise(x),
+      (valS,valP)=> `${valS} from source --- ${valP}`
+    )).subscribe(x => console.log(x))
+    sub8.next('hello')
   return () => (
     <>
       <div>
